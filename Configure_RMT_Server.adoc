@@ -2,16 +2,36 @@
 ### Purpose of document: To provide a quick deployment of the RMT server based on a limited set of parameters
 #### Aspirations: Eventually, to containerize this work
 
-#### References use: https://github.com/SUSE/rmt
+#### Based in part on https://github.com/SUSE/rmt
 
 #### Install the server and database
 * Install and register the base O/S
 * Activate the server applications module: `sudo SUSEConnect -p sle-module-server-applications/15.1/x86_64`
-* Install RMT with YaST installation wizard: `sudo zypper --non-instactive install rmt-server yast2-rmt`
+* Install RMT with YaST installation wizard: `sudo zypper --non-interactive install rmt-server yast2-rmt`
 * Configure the RMT server: `sudo yast2 rmt`
+* Review the version of SLES on the RMT server: `cat /etc/*release`
+* Add the RMT repository for the version of SLES: 
+** Set the DIST variable below appropriately, from the choices of: `SLE_15, SLE_15_SP1, openSUSE_Leap_15.0, openSUSE_Leap_15.1, openSUSE_Tumbleweed` 
+** `export DIST=`
+** `zypper ar -f https://download.opensuse.org/repositories/systemsmanagement:/SCC:/RMT/${DIST}/systemsmanagement:SCC:RMT.repo`
+* Install the RMT server: `sudo zypper --non-interactive install rmt-server`
+
+#### Prepare the database and start the RMT server
+* Ensure the database is running: `systemctl status mysql`
+* Make sure you can access to the database `mysql -u root -p`
+** Provide the database root user password
+** Use the key sequence `\q` to exit the database shell
+* Create the database `rmt` user:
+----
+mysql -u root -p <<EOF
+GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY 'rmt';
+FLUSH PRIVILEGES;
+EOF
+----
+* Ensure the RMT server is running: `systemctl status rmt-server`
+
 
 #### Sync and mirror the needed repositories
-
 
 TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. Many applications will need the "Server Applications Module" to be enabled. Systems that need a desktop environment will need the Desktop Applications Module" to be enabled. Certain products, such as CaaS Platform, require other repositories to be enabled such as the "Containers Module". 
 
