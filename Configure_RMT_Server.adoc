@@ -35,7 +35,7 @@ EOF
 
 TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. In addition, many applications need the "Server Applications Module" to be enabled. Systems that need a desktop environment need the Desktop Applications Module" to be enabled. Certain products, like CaaS Platform, require other repositories to be enabled such as the "Containers Module". 
 
-.There are several ways of determining which repositories need to be enabled for an application:
+.There are several ways of determining which repositories need to be enabled for a SUSE application:
 * Run the command `sudo SUSEConnect -s | grep --color Registered` on a system that has the required application installed and registered correctly
 * Search for the word SUSEConnect in the application's installation and/or deployment guide
 * Start the installation of a SLES VM and, after registering SLES with the SUSE Customer Center, select the desired application. All additionally required repositories will be automatically selected
@@ -45,8 +45,7 @@ TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" an
 
 TIP: The same command can be used to verify which products are currently enabled to be mirrored and when they were last mirrored.
 
-
-IMPORTANT: The RMT server must be registered for all products to be mirrored.
+IMPORTANT: The RMT server must be registered for all products that will be mirrored to it.
 
 * Enable mirroring for the desired products: `sudo rmt-cli product enable <space separated list of product IDs>`
 * Synchronize the repository meta data from the SUSE Customer Center `sudo rmt-cli sync`
