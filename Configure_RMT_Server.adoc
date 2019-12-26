@@ -9,8 +9,6 @@
 * Activate the server applications module: `sudo SUSEConnect -p sle-module-server-applications/15.1/x86_64`
 * Install RMT with YaST installation wizard: `sudo zypper --non-instactive install rmt-server yast2-rmt`
 * Configure the RMT server: `sudo yast2 rmt`
-* 
-* 
 
 #### Sync and mirror the needed repositories
 
@@ -23,7 +21,7 @@ CAUTION: The third column in the output is the version of the software. Take car
 IMPORTANT: The RMT server must be registered for all products to be mirrored.
 
 * Enable mirroring for the desired products: `sudo rmt-cli product enable <space separated list of product IDs>`
-* Synchronize the repositories' meta data from the SUSE Customer Center `sudo rmt-cli sync`
+* Synchronize the repository meta data from the SUSE Customer Center `sudo rmt-cli sync`
 * Mirror the desired repositories to the RMT server `nohup sudo rmt-cli mirror`
 
 
