@@ -20,7 +20,7 @@ TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" an
 * Search for the word SUSEConnect in the application's installation and/or deployment guide
 * Start the installation of a SLES VM and, after registering SLES with the SUSE Customer Center, select the desired application. All additionally required repositories will be automatically selected
 
-. Gather all of the product ID's for the modules to be enabled
+.Gather all of the product ID's for the modules to be enabled
 * Take note of the product ID's (in the first column) and the version numbers (in the third column); for all products to be mirrored locally: `sudo rmt-cli product list --all | less`
 
 TIP: The same command can be used to verify which products are currently enabled to be mirrored and when they were last mirrored.
