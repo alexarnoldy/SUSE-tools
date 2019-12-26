@@ -12,7 +12,6 @@
 
 #### Sync and mirror the needed repositories
 
-TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. Many applications will need the "Server Applications Module" to be enabled. Systems that need a desktop environment will need the Desktop Applications Module" to be enabled. Certain products, such as CaaS Platform, require other repositories to be enabled such as the "Containers Module". One way of ensuring the correct repositories are enabled is to run the command `sudo SUSEConnect -s | grep --color Registered` on a system that has the required application installed and registered correctly. Another way is to search for the word SUSEConnect in the application's installation and/or deployment guide.
 
 TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. Many applications will need the "Server Applications Module" to be enabled. Systems that need a desktop environment will need the Desktop Applications Module" to be enabled. Certain products, such as CaaS Platform, require other repositories to be enabled such as the "Containers Module". 
 
@@ -21,11 +20,11 @@ TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" an
 * Search for the word SUSEConnect in the application's installation and/or deployment guide
 * Start the installation of a SLES VM and, after registering SLES with the SUSE Customer Center, select the desired application. All additionally required repositories will be automatically selected
 
-* Take note of the product  "ID" for all products to be mirrored locally: `sudo rmt-cli product list --all | less`
+. Gather all of the product ID's for the modules to be enabled
+* Take note of the product ID's (in the first column) and the version numbers (in the third column); for all products to be mirrored locally: `sudo rmt-cli product list --all | less`
 
 TIP: The same command can be used to verify which products are currently enabled to be mirrored and when they were last mirrored.
 
-CAUTION: The third column in the output is the version of the software. Take care to mirror the versions of software that will be needed by the RMT clients.
 
 IMPORTANT: The RMT server must be registered for all products to be mirrored.
 
