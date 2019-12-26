@@ -33,7 +33,7 @@ EOF
 
 #### Sync and mirror the needed repositories
 
-TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. Many applications will need the "Server Applications Module" to be enabled. Systems that need a desktop environment will need the Desktop Applications Module" to be enabled. Certain products, such as CaaS Platform, require other repositories to be enabled such as the "Containers Module". 
+TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" and "Basesystem Module", for the appropriate version of SLES, to be enabled. In addition, many applications need the "Server Applications Module" to be enabled. Systems that need a desktop environment need the Desktop Applications Module" to be enabled. Certain products, like CaaS Platform, require other repositories to be enabled such as the "Containers Module". 
 
 .There are several ways of determining which repositories need to be enabled for an application:
 * Run the command `sudo SUSEConnect -s | grep --color Registered` on a system that has the required application installed and registered correctly
