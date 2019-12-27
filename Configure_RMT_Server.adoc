@@ -51,6 +51,6 @@ IMPORTANT: The RMT server must be registered for all products that will be mirro
 * Synchronize the repository meta data from the SUSE Customer Center `sudo rmt-cli sync`
 * Mirror the desired repositories to the RMT server `nohup sudo rmt-cli mirror`
 
-
+IMPORTANT: AutoYaST clients will receive the software, but not register with the RMT server. To regisiter a client use `sudo SUSEConnect --url http://<rmt server>` or `sudo SUSEConnect --url http://<rmt server> -p <product, i.e. caasp/4.0/x86_64>`
 
 // vim: set syntax=asciidoc:
