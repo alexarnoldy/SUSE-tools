@@ -279,6 +279,39 @@ sudo docker run -d -p 5000:5000 -v /etc/rmt/ssl:/etc/rmt/ssl:ro --restart=always
 -v /var/lib/registry:/var/lib/registry registry.suse.com/sles12/registry:2.6.2
 ----
 
+==== Notes from 3.1.6.2 Client Configuration
+
+NOTE: The instructions for this steps are a little strangely worded, but it seems like all cluster nodes need to have this update to point to the internal mirror rather than the Internet registries.
+
+* Update `/etc/containers/registries.conf` on all cluster nodes:
+** Comment out all existing entries
+* Add these V2 compatible entries, as appropriate. Change `registry01.mydomain.local` to match the FQDN of the internal mirror server:
+----
+[[registry]]
+prefix = "registry.suse.com"
+location = "registry01.mydomain.local:5000/registry.suse.com"
+[[registry]]
+prefix = "docker.io"
+location = "registry01.mydomain.local:5000/docker.io"
+[[registry]]
+prefix = "docker.io/library"
+location = "registry01.mydomain.local:5000/docker.io"
+[[registry]]
+prefix = "quay.io"
+location = "registry01.mydomain.local:5000/quay.io"
+[[registry]]
+prefix = "k8s.gcr.io"
+location = "registry01.mydomain.local:5000/k8s.gcr.io"
+[[registry]]
+prefix = "gcr.io"
+location = "registry01.mydomain.local:5000/gcr.io"
+----
+
+CAUTION: The problem with this step is that earlier in the procedure it cautions against using the same server for more than one mirrored registry. 
+
+
+==== Notes from 3.1.7 Helm Chart Repository Mirror
+
 
 
 
