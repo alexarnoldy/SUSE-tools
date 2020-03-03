@@ -312,6 +312,37 @@ CAUTION: The problem with this step is that earlier in the procedure it cautions
 
 ==== Notes from 3.1.7 Helm Chart Repository Mirror
 
+NOTE: The helm charts will require images available from a registry mirror. The charts themselves are served on a simple webserver and do not require any particular configuration apart from basic networking availability and a hostname.
+
+* All nodes on the internal (air-gapped) network that run helm, i.e. the admin node, must update helm to point to the webserver on the internal mirror: `helm repo add <SUSE_MIRROR> https://charts.mydomain.local`
+** Replace `<SUSE_MIRROR>` with a repo name that contains lower case letters and numbers and may be separated with dashes
+
+==== 3.1.8 Updating Registry Mirror And Helm Charts
+
+NOTE: There is no need to stop the container image registry services while doing the update procedures. All changed images will be re-indexed automatically.
+
+===== Pull Data From Upstream Sources into the External Mirror Server
+
+* Download all charts from the https://kubernetes-charts.suse.com repository to `/tmp/charts`
+** Change `mydomain.local` to match the FQDN of the INTERNAL Mirror Server
+
+----
+mkdir /tmp/charts
+cd /tmp/charts
+helm-mirror --new-root-url http://charts.mydomain.local https://kubernetes-charts.suse.com /tmp/charts
+----
+
+* Translate the chart information into the skopeo format:
+----
+mkdir /tmp/skopeodata
+helm-mirror --ignore-errors inspect-images /tmp/charts -o skopeo=sync.yaml
+----
+
+NOTE: The helm-mirror tool will attempt to render and inspect all downloaded charts. Some charts will have values that are filled from environment data on their source repository and produce errors. The --ignore-errors flag is used to complete the command regardless of these errors.
+
+* Download all the referenced images using skopeo: `skopeo sync --source-yaml sync.yaml dir:/tmp/skopeodata`
+** skopeo will automatically create a directory named after the hostname of the registry from which you are downloading the images. 
+*** The final path will be something like /tmp/skopeodata/registry.suse.com/ .
 
 
 
