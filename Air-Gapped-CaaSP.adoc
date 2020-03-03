@@ -123,9 +123,9 @@ NOTE: For security reasons, the internal registry mirror is configured in read-o
 
 NOTE: We will re-use the nginx webserver that is running as part of Repository Mirroring Tool (RMT) to act as a reverse proxy for the container image registry service and to serve the chart repository files. This step is not necessary for the external host.
 
-* Set Up Reverse Proxy and Virtual Host on the internal mirror server:
-** Create a virtual host configuration file `/etc/nginx/vhosts.d/registry-server-https.conf`
-*** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
+===== Set Up Reverse Proxy and Virtual Host on the internal mirror server:
+* Create a virtual host configuration file `/etc/nginx/vhosts.d/registry-server-https.conf`
+** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
 ----
 upstream docker-registry {
     server 127.0.0.1:5000;
@@ -171,8 +171,8 @@ server {
 }
 ----
 
-** Create a virtual host configuration file `/etc/nginx/vhosts.d/charts-server-https.conf`
-*** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
+* Create a virtual host configuration file `/etc/nginx/vhosts.d/charts-server-https.conf`
+** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
 ----
 server {
   listen 443   ssl;
@@ -193,6 +193,43 @@ server {
 ----
 
 * Restart nginx: `sudo systemctl restart nginx`
+
+===== Set Up The External Registry and Helm Mirror Server
+
+* `sudo zypper in docker helm-mirror skopeo`
+* `sudo systemctl enable --now docker.service`
+* `sudo docker pull registry.suse.com/sles12/registry:2.6.2`
+* Save the pulled image to a .tar file: `sudo docker save -o /tmp/registry.tar registry.suse.com/sles12/registry:2.6.2`
+* Create basic authentication credentials for the container image registry (Replace USERNAME and PASSWORD with credentials of your choice):
+----
+sudo mkdir -p /etc/docker/registry/{auth,certs}
+sudo docker run --entrypoint htpasswd registry.suse.com/sles12/registry:2.6.2 -Bbn <USERNAME> <PASSWORD> | sudo tee /etc/docker/registry/auth/htpasswd
+----
+* Create the /etc/docker/registry/config.yml configuration file:
+----
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  addr: 0.0.0.0:5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+threshold: 3
+----
+
+NOTE: Setting up required authentication seems to break when using CRI-O as the client so the internal registry does not use any authentication.
+
+
 
 
 
