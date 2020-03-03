@@ -344,6 +344,27 @@ NOTE: The helm-mirror tool will attempt to render and inspect all downloaded cha
 ** skopeo will automatically create a directory named after the hostname of the registry from which you are downloading the images. 
 *** The final path will be something like /tmp/skopeodata/registry.suse.com/ .
 
+* Populate the local, external mirror server registry with the downloaded data:
+** In the command below, use the same USERNAME and PASSWORD you configured above in the step "Set Up The External Registry and Helm Mirror Server"
+** Change `mydomain.local` to match the FQDN of the INTERNAL Mirror Server
+----
+skopeo sync --dest-creds USERNAME:PASSWORD \
+dir:/tmp/skopeodata/registry.suse.com/ docker://mydomain.local:5000
+----
+* After synchronization completes, remove the /tmp/skopeodata directory: `rm -rf /tmp/skopeodata`
+* Mount the USB drive to the External Mirror Server: `mount /dev/sdb1 /mnt/storage`
+* Rsync the container image data to the USB drive: `rsync -aP /var/lib/registry/ /mnt/storage/registry/ --delete`
+* Rsync the helm chart data to the USB drive: `rsync -aP /tmp/charts/ /mnt/storage/charts --delete`
+* Unmount the USB drive and move it to the Internal Mirror Server
+
+* Mount the USB drive to the INTERNAL Mirror Server: `mount /dev/sdb1 /mnt/storage`
+* Rsync the container image data to the internal registry: `rsync -aP /mnt/storage/registry/ /var/lib/registry/ --delete`
+* Rsync the helm chart data to the internal web server: `rsync -aP /mnt/storage/charts/ /srv/www/charts/ --delete`
+* Set the appropriate file ownership and permissions: `sudo chown -R nginx:nginx /srv/www/charts && sudo chmod -R 555 /srv/www/charts/`
+
+* All nodes on the internal (air-gapped) network that run helm, i.e. the admin node, should update their local helm charts from the Internal Mirror Server: `helm repo update`
+
+
 
 
 
