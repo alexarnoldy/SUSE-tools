@@ -199,7 +199,8 @@ server {
 * `sudo zypper in docker helm-mirror skopeo`
 * `sudo systemctl enable --now docker.service`
 * `sudo docker pull registry.suse.com/sles12/registry:2.6.2`
-* Save the pulled image to a .tar file: `sudo docker save -o /tmp/registry.tar registry.suse.com/sles12/registry:2.6.2`
+* Ensure the USB drive is mounted under /mnt/storage: `df -h`
+* Save the pulled image to a .tar file on the USB drive: `sudo docker save -o /mnt/storage/registry.tar registry.suse.com/sles12/registry:2.6.2`
 * Create basic authentication credentials for the container image registry (Replace USERNAME and PASSWORD with credentials of your choice):
 ----
 sudo mkdir -p /etc/docker/registry/{auth,certs}
@@ -229,6 +230,54 @@ threshold: 3
 
 NOTE: Setting up required authentication seems to break when using CRI-O as the client so the internal registry does not use any authentication.
 
+* Run the registry container:
+----
+sudo docker run -d -p 5000:5000 -v /etc/rmt/ssl:/etc/rmt/ssl:ro --restart=always --name registry \
+-v /etc/docker/registry:/etc/docker/registry:ro \
+-v /var/lib/registry:/var/lib/registry registry.suse.com/sles12/registry:2.6.2
+----
+
+===== Set Up The Internal Registry and Helm Mirror Server
+
+* `sudo zypper in docker`
+* `sudo systemctl enable --now docker.service`
+* Connect the USB drive to the internal mirror server and mount it under /mnt/storage
+* `sudo docker load -i /mnt/storage/registry.tar`
+* `sudo mkdir -p /etc/docker/registry/`
+* Create the `/etc/docker/registry/config.yml` configuration file
+----
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+  maintenance:
+    readonly:
+      enabled: true
+http:
+  addr: 0.0.0.0:5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+  tls:
+    certificate: /etc/rmt/ssl/rmt-server.crt
+    key: /etc/rmt/ssl/rmt-server.key
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+threshold: 3
+----
+
+* Run the registry container:
+----
+sudo docker run -d -p 5000:5000 -v /etc/rmt/ssl:/etc/rmt/ssl:ro --restart=always --name registry \
+-v /etc/docker/registry:/etc/docker/registry:ro \
+-v /var/lib/registry:/var/lib/registry registry.suse.com/sles12/registry:2.6.2
+----
 
 
 
