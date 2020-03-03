@@ -83,18 +83,116 @@ sudo systemctl disable rmt-server-sync.timer
 
 * The following procedure describes the transfer of data and mirrored RPMs between two RMT servers with a USB drive. 
 
-NOTE: The server `sun` is connected to the SUSE Customer Center, while `sirius` is a server in an air-gapped network. 
 
 * Sync and mirror the repos on the external RMT server, even if automatic mirroring is set:
 ----
 rmt-cli sync
 rmt-cli mirror
 ----
-* Mount a USB hard drive: `mount /dev/sdb1 /mnt/storage`
-* Export the data about available repositories and products: `rmt-cli export data /mnt/storage/`
+* Export RMT data on the external server to a USB drive:
+** Mount a USB hard drive: `mount /dev/sdb1 /mnt/storage`
+** Export the data about available repositories and products: `rmt-cli export data /mnt/storage/`
+**  Export the list of enabled repositories: `rmt-cli export settings /mnt/storage/`
+*** The exported file is required for exporting the repositories in the next step.
+**  Export mirrored RPM packages: `rmt-cli export repos /mnt/storage`
+*** Depending on the size of mirrored repositories, this can take a long time.
 
 
+* Import RMT data on the internal server to a USB drive:
+** Mount a USB hard drive: `mount /dev/sdb1 /mnt/storage`
+** Import the data about available repositories and products: `rmt-cli import data /mnt/storage/`
+** Import mirrored RPM packages: `rmt-cli import repos /mnt/storage`
 
+NOTE: You can optionally export the RMT settings (as above) from the internal server and import them on the external server (`rmt-cli import settings /mnt/storage/`) to easily enable the repos required by the internal server. 
+
+* Enable the required repos on the internal server as described in https://github.com/alexarnoldy/SUSE-tools/blob/master/Configure_RMT_Server.adoc
+
+==== Notes on 3.1.6 Container Registry Mirror
+
+* You can mirror images and charts from multiple registries in one shared internal registry. 
+** We do not recommend mirroring multiple registries in a shared registry due to the potential conflicts.
+** We highly recommend running separate helm chart and container registry mirrors for each source registry.
+** Additional mirror registries must be run on separate mirror servers for technical reasons.
+
+* You must download the registry container from SUSE and run it on the respective server.
+
+* This list of base images can be found under the following link: https://documentation.suse.com/external-tree/en-us/suse-caasp/4/skuba-cluster-images.txt
+* Can also get a list of images with `skuba cluster images`
+
+NOTE: For security reasons, the internal registry mirror is configured in read-only mode. 
+
+NOTE: We will re-use the nginx webserver that is running as part of Repository Mirroring Tool (RMT) to act as a reverse proxy for the container image registry service and to serve the chart repository files. This step is not necessary for the external host.
+
+* Set Up Reverse Proxy and Virtual Host on the internal mirror server:
+** Create a virtual host configuration file `/etc/nginx/vhosts.d/registry-server-https.conf`
+*** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
+----
+upstream docker-registry {
+    server 127.0.0.1:5000;
+}
+
+map $upstream_http_docker_distribution_api_version $docker_distribution_api_version {
+  '' 'registry/2.0';
+}
+
+server {
+    listen 443   ssl;
+    server_name  registry.`mymirror.local`;
+
+    access_log  /var/log/nginx/registry_https_access.log;
+    error_log   /var/log/nginx/registry_https_error.log;
+    root        /usr/share/rmt/public;
+
+    ssl_certificate     /etc/rmt/ssl/rmt-server.crt;
+    ssl_certificate_key /etc/rmt/ssl/rmt-server.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    # disable any limits to avoid HTTP 413 for large image uploads
+    client_max_body_size 0;
+
+    location /v2/ {
+      # Do not allow connections from docker 1.5 and earlier
+      # docker pre-1.6.0 did not properly set the user agent on ping, catch "Go *" user agents
+      if ($http_user_agent ~ "^(docker\/1\.(3|4|5(?!\.[0-9]-dev))|Go ).*$" ) {
+        return 404;
+      }
+
+      ## If $docker_distribution_api_version is empty, the header is not added.
+      ## See the map directive above where this variable is defined.
+      add_header 'Docker-Distribution-Api-Version' $docker_distribution_api_version always;
+
+      proxy_pass                          http://docker-registry;
+      proxy_set_header  Host              $http_host;   # required for docker client's sake
+      proxy_set_header  X-Real-IP         $remote_addr; # pass on real client's IP
+      proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header  X-Forwarded-Proto $scheme;
+      proxy_read_timeout                  900;
+    }
+}
+----
+
+** Create a virtual host configuration file `/etc/nginx/vhosts.d/charts-server-https.conf`
+*** Replace mymirror.local below with the FQDN of the internal mirror server (Seems like the point is to use the FQDN that matches the SSL certs)
+----
+server {
+  listen 443   ssl;
+  server_name  charts.`mymirror.local`;
+
+  access_log  /var/log/nginx/charts_https_access.log;
+  error_log   /var/log/nginx/charts_https_error.log;
+  root        /srv/www/;
+
+  ssl_certificate     /etc/rmt/ssl/rmt-server.crt;
+  ssl_certificate_key /etc/rmt/ssl/rmt-server.key;
+  ssl_protocols       TLSv1.2 TLSv1.3;
+
+  location /charts {
+    autoindex on;
+  }
+}
+----
+
+* Restart nginx: `sudo systemctl restart nginx`
 
 
 
