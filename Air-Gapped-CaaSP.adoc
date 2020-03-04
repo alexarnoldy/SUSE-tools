@@ -7,12 +7,12 @@
 * Updating of mirrors happens in three stages.
 **    Update the external mirror from upstream.
 **    Transfer the updated data onto a trusted storage device.
-***	(Trusted storage seems to be physically connected to both the external and internal mirror servers)
+***	(Trusted storage can be be physically connected to both the external and internal mirror servers, or a separate device such as a USB drive)
 **    Update the internal mirror from the trusted storage device.
 
 * Seems like you have to manually copy the RMT data from the external to internal locations (on the shared storage)
 
-* The download location of the container image is stored inside the Helm chart.
+* The download location of required container images is stored inside the Helm chart.
 * To mirror container images inside the air gapped environment, you will run two container image registry services that are used to pull and in turn serve these images. 
 ** The registry service is shipped as a container image itself.
 
@@ -31,11 +31,11 @@
 *** External: This machine will host the: 
 **** Repository Mirroring Tool (RMT) for RPM packages and the 
 **** container image registry for container images.
-*** Internal: This machine will host the 
+*** Internal: This machine will host the: 
 **** Repository Mirroring Tool (RMT) for RPM packages, and 
 **** container image registry for container images as well as the 
 **** Helm chart repository files.
-** Ensure the container module and Repository Mirroring Tool is installed on both servers
+
 
 * If you choose to add more container image registries to your internal network, these must run on different ports than the standard registry running on 5000. Configure your network to allow for this communication accordingly.
 
@@ -68,7 +68,13 @@ sudo update-ca-certificates
 
 ==== Notes for 3.1.4 RPM Repository Mirror
 
-* During the installation of Repository Mirroring Tool (RMT) use SCC creds for external, skip the SCC login for internal
+* Install RMT on both servers, per: https://github.com/alexarnoldy/SUSE-tools/blob/master/Configure_RMT_Server.adoc
+** Ensure the container module and Repository Mirroring Tool is installed on both servers
+** When prompted to provide SCC "Organizational Credentials" on the first page of RMT configuration: 
+*** Provide the credentials for the External Server
+*** For the Internal Server, use "Next" and "Ignore and continue" to skip providing credentials 
+** Do not sync and mirror repos on the Internal Server
+
 * Need to disable automatic repository sync on internal mirror:
 ----
 sudo systemctl stop rmt-server-sync.timer
@@ -83,23 +89,24 @@ sudo systemctl disable rmt-server-sync.timer
 
 * The following procedure describes the transfer of data and mirrored RPMs between two RMT servers with a USB drive. 
 
-
-* Sync and mirror the repos on the external RMT server, even if automatic mirroring is set:
+* Sync and mirror the repos on the External RMT Server, even if automatic mirroring is set:
 ----
-rmt-cli sync
-rmt-cli mirror
+sudo rmt-cli sync
+sudo rmt-cli mirror
 ----
 * Export RMT data on the external server to a USB drive:
-** Mount a USB hard drive: `mount /dev/sdb1 /mnt/storage`
-** Export the data about available repositories and products: `rmt-cli export data /mnt/storage/`
-**  Export the list of enabled repositories: `rmt-cli export settings /mnt/storage/`
+** Mount a USB hard drive: `sudo mount /dev/vdb1 /mnt/storage`
+** Ensure the _rmt server can write to the storage: `sudo chown _rmt:nginx /mnt/storage/`
+** Export the data about available repositories and products: `sudo rmt-cli export data /mnt/storage/`
+**  Export the list of enabled repositories: `sudo rmt-cli export settings /mnt/storage/`
 *** The exported file is required for exporting the repositories in the next step.
-**  Export mirrored RPM packages: `rmt-cli export repos /mnt/storage`
+**  Export mirrored RPM packages: `sudo rmt-cli export repos /mnt/storage`
 *** Depending on the size of mirrored repositories, this can take a long time.
+** Unmount the USB hard drive and move it to the Internal Mirror Server
 
 
-* Import RMT data on the internal server to a USB drive:
-** Mount a USB hard drive: `mount /dev/sdb1 /mnt/storage`
+* Import RMT data on the Internal Mirror Server to a USB drive:
+** Mount a USB hard drive: `sudo mount /dev/vdb1 /mnt/storage`
 ** Import the data about available repositories and products: `rmt-cli import data /mnt/storage/`
 ** Import mirrored RPM packages: `rmt-cli import repos /mnt/storage`
 
