@@ -59,8 +59,7 @@ TIP: Use the same command `sudo rmt-cli product list --all | grep Mirror | grep 
 IMPORTANT: The RMT server must be registered for all products that will be mirrored to it.
 
 * Enable mirroring for the desired products: `sudo rmt-cli product enable <space separated list of product IDs>`
-* Synchronize the repository meta data from the SUSE Customer Center `sudo rmt-cli sync`
-* Mirror the desired repositories to the RMT server `nohup sudo rmt-cli mirror`
+* Synchronize the repository meta data and mirror the desired repositories to the RMT server `sudo rmt-cli sync && nohup sudo rmt-cli mirror`
 
 IMPORTANT: AutoYaST clients will receive the software, but not automatically register with the RMT server. To regisiter a client use `sudo SUSEConnect --url http://<rmt server>` or `sudo SUSEConnect --url http://<rmt server> -p <product, i.e. caasp/4.0/x86_64>`
 
