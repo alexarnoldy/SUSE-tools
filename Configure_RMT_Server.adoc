@@ -54,7 +54,7 @@ TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" an
 .Gather all of the product ID's for the modules to be enabled
 * Take note of the product ID's (in the first column) and the version numbers (in the third column); for all products to be mirrored locally: `sudo rmt-cli product list --all | less`
 
-TIP: The same command can be used to verify which products are currently enabled to be mirrored and when they were last mirrored.
+TIP: Use the same command `sudo rmt-cli product list --all | grep Mirror | grep -v Don\'t` to verify which products are currently enabled to be mirrored and when they were last mirrored.
 
 IMPORTANT: The RMT server must be registered for all products that will be mirrored to it.
 
