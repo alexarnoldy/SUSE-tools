@@ -36,11 +36,13 @@ NOTE: You will still have to enter the password to authenticate into the rmt dat
 
 ----
 # Set this variable to the same password specified for the database user in the `sudo yast2 rmt` step
-export PASSWORD=""
+# IMPORTANT: Be sure to capture the two leading spaces before "export" to ensure the command doesn't get saved in your history
+  export PASSWORD=""
 mysql -u root -p <<EOF
 GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY "$PASSWORD";
 FLUSH PRIVILEGES;
 EOF
+  unset PASSWORD
 ----
 * Ensure the RMT server is running: `systemctl status rmt-server`
 
