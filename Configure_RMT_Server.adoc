@@ -70,4 +70,29 @@ IMPORTANT: The RMT server must be registered for all products that will be mirro
 
 IMPORTANT: AutoYaST clients will receive the software, but not automatically register with the RMT server. To regisiter a client use `sudo SUSEConnect --url http://<rmt server>` or `sudo SUSEConnect --url http://<rmt server> -p <product, i.e. caasp/4.0/x86_64>`
 
+## How to de-register a client from SCC or an RMT server, then register it with SCC or a new RMT:
+* Force de-register:
+----
+sudo -i
+SUSEConnect --de-register
+SUSEConnect --cleanup
+rm -f /etc/SUSEConnect
+rm -rf /etc/zypp/credentials.d/*
+rm -rf /etc/zypp/repos.d/*
+rm -f /etc/zypp/services.d/*
+----
+* Register with SCC:
+----
+export REG_CODE=""
+SUSEConnect -r ${REG_CODE}
+SUSEConnect -s
+----
+* Register with an RMT server:
+----
+export rmt_server_url=""
+SUSEConnect --url ${rmt_server_url}
+SUSEConnect -s
+----
+
+
 // vim: set syntax=asciidoc:
