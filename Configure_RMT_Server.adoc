@@ -56,6 +56,7 @@ TIP: Virtually all installations will need the "SUSE Linux Enterprise Server" an
 .There are several ways of determining which repositories need to be enabled for a SUSE application:
 * Run the command `sudo SUSEConnect -s | grep --color Registered` on a system that has the required application installed and registered correctly
 * Search for the word SUSEConnect in the application's installation and/or deployment guide
+* Run `SUSEConnect -list-extensions` on a properly registered system (note that this shows the repositories the RMT server it is registered has configured) 
 * Start the installation of a SLES VM and, after registering SLES with the SUSE Customer Center, select the desired application. All additionally required repositories will be automatically selected
 
 .Gather all of the product ID's for the modules to be enabled
